@@ -4,10 +4,11 @@ import Sidebar from "./components/Sidebar";
 import { getAllFiles } from "./utils/localStorage";
 
 import { useState } from "react";
+import { getCurrentTime } from "./utils/utils";
 
 function App() {
   const [files, setFiles] = useState(getAllFiles);
-  const [currentFile, setCurrentFile] = useState({filename: "Untitled " + new Date().toUTCString(), content: ""});
+  const [currentFile, setCurrentFile] = useState({filename: "Untitled " + getCurrentTime(), content: ""});
 
   return (
     <div className="w-full">

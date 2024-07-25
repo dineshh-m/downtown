@@ -14,24 +14,34 @@ export default function MarkdownEditor({
   currentFile,
   setCurrentFile,
 }: {
-  files: (string | null)[]
+  files: (string | null)[];
   setFiles: Dispatch<SetStateAction<(string | null)[]>>;
-  currentFile: { filename: string, content: string };
-  setCurrentFile: ({ filename, content }: {filename: string, content: string}) => void;
+  currentFile: { filename: string; content: string };
+  setCurrentFile: React.Dispatch<
+    React.SetStateAction<{
+      filename: string;
+      content: string;
+    }>
+  >;
 }) {
-
+  // for handling editor changes
   const handleEditorChange = useCallback((value: string) => {
-    setCurrentFile({...currentFile, content: value});
+    // setCurrentFile({ ...currentFile, content: value });
+    setCurrentFile(prevFile => {
+      return {...prevFile, content: value};
+    })
   }, []);
+  // for handling save button click
   const handleSaveClick = () => {
     if (!files.includes(currentFile.filename)) {
       setFiles((files) => [...files, currentFile.filename]);
     }
     saveFile(currentFile.filename, currentFile.content);
-  }
+  };
+  // for handling the filename change in the top of the editor
   const handleFilenameChange = (event: any) => {
-    setCurrentFile({...currentFile, filename: event.target.value});
-  }
+    setCurrentFile({ ...currentFile, filename: event.target.value });
+  };
 
   return (
     <div className="flex flex-col w-full">
