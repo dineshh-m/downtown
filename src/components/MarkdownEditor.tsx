@@ -1,5 +1,5 @@
 import SimpleMdeReact, { SimpleMDEReactProps } from "react-simplemde-editor";
-import { Dispatch, SetStateAction, useCallback } from "react";
+import { Dispatch, SetStateAction, } from "react";
 import ButtonIcon from "./ButtonIcon";
 import { saveFile } from "../utils/localStorage";
 
@@ -24,13 +24,9 @@ export default function MarkdownEditor({
     }>
   >;
 }) {
-  // for handling editor changes
-  const handleEditorChange = useCallback((value: string) => {
-    // setCurrentFile({ ...currentFile, content: value });
-    setCurrentFile(prevFile => {
-      return {...prevFile, content: value};
-    })
-  }, []);
+  const handleEditorChange = (value: string) => {
+    setCurrentFile({ ...currentFile, content: value });
+  };
   // for handling save button click
   const handleSaveClick = () => {
     if (!files.includes(currentFile.filename)) {
@@ -40,7 +36,7 @@ export default function MarkdownEditor({
   };
   // for handling the filename change in the top of the editor
   const handleFilenameChange = (event: any) => {
-    setCurrentFile({ ...currentFile, filename: event.target.value });
+    setCurrentFile({...currentFile, filename: event.target.value});
   };
 
   return (
