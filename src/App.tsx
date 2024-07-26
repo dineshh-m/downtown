@@ -11,11 +11,18 @@ function App() {
   const [currentFile, setCurrentFile] = useState({filename: "Untitled " + getCurrentTime(), content: ""});
 
   return (
-    <div className="w-full">
+    <div className="w-full text-slate-900 bg-white">
       <Navbar />
       <div className="mt-16 z-10 flex">
         <Sidebar files={files} setCurrentFile={setCurrentFile} />
-        <MarkdownEditor files={files} setFiles={setFiles} currentFile={currentFile} setCurrentFile={setCurrentFile}/>
+        <div className="w-full py-2 px-2">
+          <MarkdownEditor
+            files={files}
+            setFiles={setFiles}
+            currentFile={currentFile}
+            setCurrentFile={setCurrentFile}
+          />
+        </div>
       </div>
     </div>
   );

@@ -6,6 +6,7 @@ import { saveFile } from "../utils/localStorage";
 const MDEProps = {
   maxHeight: "500px",
   sideBySideFullScreen: false,
+  id: "mde-textarea"
 } as SimpleMDEReactProps;
 
 export default function MarkdownEditor({
@@ -41,22 +42,23 @@ export default function MarkdownEditor({
 
   return (
     <div className="flex flex-col w-full">
-      <div className="flex justify-between items-center">
+      <div className="flex items-center gap-1 text-slate-500 hover:text-slate-900">
+        <span className="text-3xl font-semibold font-serif">#</span>
         <input
-          className="block font-bold text-xl p-2 focus:outline-none rounded border-2 border-zinc-200"
+          className="block font-medium text-xl p-2 focus:outline-none rounded border-2 border-transparent caret-zinc-400 cursor-pointer"
           type="text"
           value={currentFile.filename}
           onChange={handleFilenameChange}
         />
-        <div className="pr-3">
+        {/* <div className="pr-3">
           <ButtonIcon src="save.svg" handleClick={handleSaveClick} />
-        </div>
+        </div> */}
       </div>
       <div className="w-full overflow-auto">
         <SimpleMdeReact
           value={currentFile.content}
           onChange={handleEditorChange}
-          className="w-full"
+          className="w-full border-none text-slate-900"
           options={MDEProps}
         />
       </div>
