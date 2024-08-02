@@ -14,7 +14,7 @@ function App() {
     <div className="w-full text-slate-900 bg-white">
       <Navbar />
       <div className="mt-16 z-10 flex">
-        <Sidebar files={files} setCurrentFile={setCurrentFile} />
+        <Sidebar files={files} setFiles={setFiles} setCurrentFile={setCurrentFile} />
         <div className="w-full py-2 px-2">
           <MarkdownEditor
             files={files}

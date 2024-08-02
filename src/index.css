@@ -50,4 +50,8 @@
   img {
     @apply inline
   }
+
+  #mde-textarea {
+    @apply text-slate-500
+  }
 }

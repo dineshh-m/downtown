@@ -45,14 +45,14 @@ export default function MarkdownEditor({
       <div className="flex items-center gap-1 text-slate-500 hover:text-slate-900">
         <span className="text-3xl font-semibold font-serif">#</span>
         <input
-          className="block font-medium text-xl p-2 focus:outline-none rounded border-2 border-transparent caret-zinc-400 cursor-pointer"
+          className="block font-medium text-xl p-2 focus:text-slate-900 focus:outline-none rounded border-2 border-transparent caret-zinc-400 cursor-pointer"
           type="text"
           value={currentFile.filename}
           onChange={handleFilenameChange}
         />
-        {/* <div className="pr-3">
+        <div className="pr-3">
           <ButtonIcon src="save.svg" handleClick={handleSaveClick} />
-        </div> */}
+        </div>
       </div>
       <div className="w-full overflow-auto">
         <SimpleMdeReact
