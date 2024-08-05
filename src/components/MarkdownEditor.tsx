@@ -36,7 +36,7 @@ export default function MarkdownEditor({
     saveFile(currentFile.filename, currentFile.content);
   };
   // for handling the filename change in the top of the editor
-  const handleFilenameChange = (event: any) => {
+  const handleFilenameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setCurrentFile({...currentFile, filename: event.target.value});
   };
 
