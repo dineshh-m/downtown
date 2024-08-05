@@ -2,7 +2,9 @@
 
 A simple and straightforward markdown editor that stores your markdown files in the browser's local storage.
 
-![downtown](https://github.com/user-attachments/assets/e82f0a9e-270f-4501-9ab6-cefab1a5e734)
+![downtown](https://github.com/user-attachments/assets/ddec6446-116d-44d7-a2fc-314b94c3fef8)
+
+
 ## Tech Used
 
 * React
