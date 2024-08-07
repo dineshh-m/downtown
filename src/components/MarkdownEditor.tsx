@@ -1,7 +1,7 @@
 import SimpleMdeReact, { SimpleMDEReactProps } from "react-simplemde-editor";
 import { Dispatch, SetStateAction, } from "react";
 import ButtonIcon from "./ButtonIcon";
-import { saveFile } from "../utils/localStorage";
+import { deleteFile, saveFile } from "../utils/localStorage";
 
 const MDEProps = {
   maxHeight: "500px",
@@ -17,16 +17,24 @@ export default function MarkdownEditor({
 }: {
   files: (string | null)[];
   setFiles: Dispatch<SetStateAction<(string | null)[]>>;
-  currentFile: { filename: string; content: string };
+  currentFile: { filename: string; content: string, isSaved: boolean; };
   setCurrentFile: React.Dispatch<
     React.SetStateAction<{
       filename: string;
       content: string;
+      isSaved: boolean;
     }>
   >;
 }) {
   const handleEditorChange = (value: string) => {
+    console.log(value);
     setCurrentFile({ ...currentFile, content: value });
+    saveFile(currentFile.filename, value);
+    
+    if (!currentFile.isSaved) {
+      setFiles([...files, currentFile.filename]);
+      setCurrentFile({...currentFile, isSaved: true});
+    }
   };
   // for handling save button click
   const handleSaveClick = () => {
@@ -37,7 +45,20 @@ export default function MarkdownEditor({
   };
   // for handling the filename change in the top of the editor
   const handleFilenameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setCurrentFile({...currentFile, filename: event.target.value});
+    // changing the currentFile state so that input field is upated
+    const newFilename = event.target.value;
+    setCurrentFile({...currentFile, filename: newFilename });
+    const updatedFiles = files.map((value) => {
+      if (value === currentFile.filename) {
+        return newFilename;
+      }
+
+      return value;
+    });
+    console.log(updatedFiles);
+    deleteFile(currentFile.filename);
+    saveFile(newFilename, currentFile.content);
+    setFiles([...updatedFiles]);
   };
 
   return (

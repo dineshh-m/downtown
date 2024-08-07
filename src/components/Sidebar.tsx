@@ -8,23 +8,22 @@ export default function Sidebar({
   setCurrentFile,
 }: {
   files: (string | null)[];
-  setFiles: React.Dispatch<React.SetStateAction<(string | null)[]>>;
-  setCurrentFile: Dispatch<
-    SetStateAction<{ filename: string; content: string }>
+  setFiles: React.Dispatch<React.SetStateAction<(string | null)[]>>; setCurrentFile: Dispatch<
+    SetStateAction<{ filename: string; content: string; isSaved: boolean }>
   >;
 }) {
   const handleSelectFile = (filename: any) => {
     const content = loadFile(filename);
-    setCurrentFile({ filename, content });
+    setCurrentFile({ filename, content, isSaved: true });
   };
 
   const handleNewFileClick = () => {
-    setCurrentFile({ filename: "Untitled " + getCurrentTime(), content: "" });
+    setCurrentFile({ filename: "Untitled " + getCurrentTime(), content: "", isSaved: false });
   };
 
   const handleDeleteClick = (filename: string | null) => {
     if (filename) {
-      const filteredFiles = files.filter(value => value !== filename);
+      const filteredFiles = files.filter((value) => value !== filename);
       setFiles(filteredFiles);
       deleteFile(filename);
     }
@@ -45,7 +44,10 @@ export default function Sidebar({
           {files.length > 0 ? (
             files.map((file) => {
               return (
-                <div key={file} className="w-full flex justify-between items-center group my-1 px-2">
+                <div
+                  key={file}
+                  className="w-full flex justify-between items-center group my-1 px-2"
+                >
                   <button
                     onClick={() => handleSelectFile(file)}
                     className="block w-full rounded-md text-slate-500 hover:text-slate-900 text-start text-clip  before:content-['#_']"

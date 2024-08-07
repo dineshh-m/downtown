@@ -8,7 +8,7 @@ import { getCurrentTime } from "./utils/utils";
 
 function App() {
   const [files, setFiles] = useState(getAllFiles);
-  const [currentFile, setCurrentFile] = useState({filename: "Untitled " + getCurrentTime(), content: ""});
+  const [currentFile, setCurrentFile] = useState({filename: "Untitled " + getCurrentTime(), content: "", isSaved: false });
 
   return (
     <div className="w-full text-slate-900 bg-white">
