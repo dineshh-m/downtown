@@ -28,6 +28,14 @@ export function useAutosave({ delay = 1000, onSave }: UseAutosaveOptions) {
     } catch (error) {
       console.error('Autosave error:', error);
       setStatus('error');
+      
+      // Reset to idle after 3 seconds for error state
+      if (savedTimeoutRef.current) {
+        clearTimeout(savedTimeoutRef.current);
+      }
+      savedTimeoutRef.current = setTimeout(() => {
+        setStatus('idle');
+      }, 3000);
     }
   };
 

@@ -31,14 +31,14 @@ export default function MarkdownEditor({
   // Autosave hook with 1 second delay
   const { status, triggerSave, save } = useAutosave({
     delay: 1000,
-    onSave: () => {
+    onSave: async () => {
       // Save the file to localStorage
       saveFile(currentFile.filename, currentFile.content);
       
-      // Add file to the list if not already present
+      // Add file to the list if not already present (after successful save)
       if (!currentFile.isSaved && !files.includes(currentFile.filename)) {
-        setFiles([...files, currentFile.filename]);
-        setCurrentFile({...currentFile, isSaved: true});
+        setFiles((prevFiles) => [...prevFiles, currentFile.filename]);
+        setCurrentFile((prev) => ({ ...prev, isSaved: true }));
       }
     },
   });
@@ -52,11 +52,12 @@ export default function MarkdownEditor({
   };
 
   // for handling save button click (manual save)
-  const handleSaveClick = () => {
+  const handleSaveClick = async () => {
     if (!files.includes(currentFile.filename)) {
       setFiles((files) => [...files, currentFile.filename]);
+      setCurrentFile((prev) => ({ ...prev, isSaved: true }));
     }
-    save(); // Save immediately without debouncing
+    await save(); // Save immediately without debouncing
   };
 
   // for handling the filename change in the top of the editor
