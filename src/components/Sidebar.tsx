@@ -12,7 +12,8 @@ export default function Sidebar({
     SetStateAction<{ filename: string; content: string; isSaved: boolean }>
   >;
 }) {
-  const handleSelectFile = (filename: any) => {
+  const handleSelectFile = (filename: string | null) => {
+    if (!filename) return;
     const content = loadFile(filename);
     setCurrentFile({ filename, content, isSaved: true });
   };
