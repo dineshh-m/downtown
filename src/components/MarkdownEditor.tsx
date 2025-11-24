@@ -1,5 +1,5 @@
 import SimpleMdeReact, { SimpleMDEReactProps } from "react-simplemde-editor";
-import { Dispatch, SetStateAction } from "react";
+import { Dispatch, SetStateAction, useRef, useEffect } from "react";
 import ButtonIcon from "./ButtonIcon";
 import { deleteFile, saveFile } from "../utils/localStorage";
 import { useAutosave } from "../utils/useAutosave";
@@ -28,24 +28,40 @@ export default function MarkdownEditor({
     }>
   >;
 }) {
+  // Use ref to always have access to the latest currentFile value
+  const currentFileRef = useRef(currentFile);
+  
+  // Update ref when currentFile changes
+  useEffect(() => {
+    currentFileRef.current = currentFile;
+  }, [currentFile]);
+
   // Autosave hook with 1 second delay
   const { status, triggerSave, save } = useAutosave({
     delay: 1000,
     onSave: async () => {
+      // Use ref to get the latest currentFile value
+      const fileToSave = currentFileRef.current;
+      
       // Save the file to localStorage
-      saveFile(currentFile.filename, currentFile.content);
+      saveFile(fileToSave.filename, fileToSave.content);
       
       // Add file to the list if not already present (after successful save)
-      if (!currentFile.isSaved && !files.includes(currentFile.filename)) {
-        setFiles((prevFiles) => [...prevFiles, currentFile.filename]);
+      if (!fileToSave.isSaved) {
+        setFiles((prevFiles) => {
+          if (!prevFiles.includes(fileToSave.filename)) {
+            return [...prevFiles, fileToSave.filename];
+          }
+          return prevFiles;
+        });
         setCurrentFile((prev) => ({ ...prev, isSaved: true }));
       }
     },
   });
 
   const handleEditorChange = (value: string) => {
-    // Update the current file content
-    setCurrentFile({ ...currentFile, content: value });
+    // Update the current file content using functional update
+    setCurrentFile((prev) => ({ ...prev, content: value }));
     
     // Trigger autosave (debounced)
     triggerSave();
