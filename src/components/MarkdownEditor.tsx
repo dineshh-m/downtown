@@ -1,7 +1,9 @@
 import SimpleMdeReact, { SimpleMDEReactProps } from "react-simplemde-editor";
-import { Dispatch, SetStateAction, } from "react";
+import { Dispatch, SetStateAction } from "react";
 import ButtonIcon from "./ButtonIcon";
 import { deleteFile, saveFile } from "../utils/localStorage";
+import { useAutosave } from "../utils/useAutosave";
+import AutosaveIndicator from "./AutosaveIndicator";
 
 const MDEProps = {
   maxHeight: "500px",
@@ -26,23 +28,37 @@ export default function MarkdownEditor({
     }>
   >;
 }) {
+  // Autosave hook with 1 second delay
+  const { status, triggerSave, save } = useAutosave({
+    delay: 1000,
+    onSave: () => {
+      // Save the file to localStorage
+      saveFile(currentFile.filename, currentFile.content);
+      
+      // Add file to the list if not already present
+      if (!currentFile.isSaved && !files.includes(currentFile.filename)) {
+        setFiles([...files, currentFile.filename]);
+        setCurrentFile({...currentFile, isSaved: true});
+      }
+    },
+  });
+
   const handleEditorChange = (value: string) => {
-    console.log(value);
+    // Update the current file content
     setCurrentFile({ ...currentFile, content: value });
-    saveFile(currentFile.filename, value);
     
-    if (!currentFile.isSaved) {
-      setFiles([...files, currentFile.filename]);
-      setCurrentFile({...currentFile, isSaved: true});
-    }
+    // Trigger autosave (debounced)
+    triggerSave();
   };
-  // for handling save button click
+
+  // for handling save button click (manual save)
   const handleSaveClick = () => {
     if (!files.includes(currentFile.filename)) {
       setFiles((files) => [...files, currentFile.filename]);
     }
-    saveFile(currentFile.filename, currentFile.content);
+    save(); // Save immediately without debouncing
   };
+
   // for handling the filename change in the top of the editor
   const handleFilenameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     // changing the currentFile state so that input field is upated
@@ -71,7 +87,8 @@ export default function MarkdownEditor({
           value={currentFile.filename}
           onChange={handleFilenameChange}
         />
-        <div className="pr-3">
+        <div className="flex items-center gap-2 pr-3">
+          <AutosaveIndicator status={status} />
           <ButtonIcon src="save.svg" handleClick={handleSaveClick} />
         </div>
       </div>
