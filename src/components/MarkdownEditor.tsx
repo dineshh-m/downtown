@@ -1,5 +1,5 @@
 import SimpleMdeReact, { SimpleMDEReactProps } from "react-simplemde-editor";
-import { Dispatch, SetStateAction, useEffect, useState, useMemo } from "react";
+import { Dispatch, SetStateAction, useEffect, useState, useMemo, useRef } from "react";
 import ButtonIcon from "./ButtonIcon";
 import { deleteFile, saveFile } from "../utils/localStorage";
 import { createAutosave, sanitizeContent } from "../utils/autosave";
@@ -31,6 +31,9 @@ export default function MarkdownEditor({
   const [autosaveStatus, setAutosaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const [errorMessage, setErrorMessage] = useState<string>('');
 
+  // Track timeout for cleanup
+  const statusTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   // Create autosave function with debounce
   const autosave = useMemo(
     () =>
@@ -46,7 +49,10 @@ export default function MarkdownEditor({
             setAutosaveStatus('saved');
             setErrorMessage('');
             // Reset status after 2 seconds
-            setTimeout(() => setAutosaveStatus('idle'), 2000);
+            if (statusTimeoutRef.current) {
+              clearTimeout(statusTimeoutRef.current);
+            }
+            statusTimeoutRef.current = setTimeout(() => setAutosaveStatus('idle'), 2000);
           },
           onError: (error: Error) => {
             setAutosaveStatus('error');
@@ -58,14 +64,24 @@ export default function MarkdownEditor({
     []
   );
 
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (statusTimeoutRef.current) {
+        clearTimeout(statusTimeoutRef.current);
+      }
+    };
+  }, []);
+
   const handleEditorChange = (value: string) => {
     setAutosaveStatus('saving');
-    setCurrentFile({ ...currentFile, content: value });
     
     // Add to files list if not already saved
     if (!currentFile.isSaved) {
       setFiles([...files, currentFile.filename]);
       setCurrentFile({...currentFile, content: value, isSaved: true});
+    } else {
+      setCurrentFile({ ...currentFile, content: value });
     }
     
     // Trigger autosave
