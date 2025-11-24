@@ -80,18 +80,20 @@ export default function MarkdownEditor({
   const handleFilenameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     // changing the currentFile state so that input field is upated
     const newFilename = event.target.value;
-    setCurrentFile({...currentFile, filename: newFilename });
+    const oldFilename = currentFile.filename;
+    
+    setCurrentFile((prev) => ({ ...prev, filename: newFilename }));
+    
     const updatedFiles = files.map((value) => {
-      if (value === currentFile.filename) {
+      if (value === oldFilename) {
         return newFilename;
       }
-
       return value;
     });
-    console.log(updatedFiles);
-    deleteFile(currentFile.filename);
+    
+    deleteFile(oldFilename);
     saveFile(newFilename, currentFile.content);
-    setFiles([...updatedFiles]);
+    setFiles(updatedFiles);
   };
 
   return (
