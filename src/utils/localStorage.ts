@@ -1,5 +1,7 @@
+import { safeLocalStorageSave } from './autosave';
+
 export function saveFile(filename: string, fileContent: string): void {
-    localStorage.setItem(filename, fileContent);
+    safeLocalStorageSave(filename, fileContent);
 }
 
 export function loadFile(filename: string) {
