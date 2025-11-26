@@ -73,12 +73,4 @@ export function createDebouncedAutosave(delay: number = 2000) {
   };
 }
 
-/**
- * Cancels any pending autosave operation
- * @param timeoutId - The timeout ID to cancel
- */
-export function cancelAutosave(timeoutId: ReturnType<typeof setTimeout> | null): void {
-  if (timeoutId !== null) {
-    clearTimeout(timeoutId);
-  }
-}
+
