@@ -1,7 +1,8 @@
 import SimpleMdeReact, { SimpleMDEReactProps } from "react-simplemde-editor";
-import { Dispatch, SetStateAction, } from "react";
+import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
 import ButtonIcon from "./ButtonIcon";
 import { deleteFile, saveFile } from "../utils/localStorage";
+import { createAutosave, AutosaveInstance } from "../utils/autosave";
 
 const MDEProps = {
   maxHeight: "500px",
@@ -26,39 +27,87 @@ export default function MarkdownEditor({
     }>
   >;
 }) {
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const autosaveRef = useRef<AutosaveInstance | null>(null);
+  const currentFileRef = useRef(currentFile);
+
+  // Update ref whenever currentFile changes
+  useEffect(() => {
+    currentFileRef.current = currentFile;
+  }, [currentFile]);
+
+  // Initialize autosave on component mount
+  useEffect(() => {
+    autosaveRef.current = createAutosave(saveFile, {
+      delay: 2000, // 2 seconds of inactivity
+      onSave: (filename) => {
+        console.log(`Autosaved: ${filename}`);
+        setSaveError(null);
+      },
+      onError: (error) => {
+        console.error('Autosave error:', error);
+        setSaveError(error.message);
+      },
+    });
+
+    // Cleanup on unmount
+    return () => {
+      autosaveRef.current?.cleanup();
+    };
+  }, []);
+
   const handleEditorChange = (value: string) => {
     console.log(value);
     setCurrentFile({ ...currentFile, content: value });
-    saveFile(currentFile.filename, value);
+    
+    // Use debounced autosave with current filename from ref to avoid stale closure
+    if (autosaveRef.current) {
+      autosaveRef.current.debouncedSave(currentFileRef.current.filename, value);
+    }
     
     if (!currentFile.isSaved) {
       setFiles([...files, currentFile.filename]);
       setCurrentFile({...currentFile, isSaved: true});
     }
   };
-  // for handling save button click
+  // for handling save button click (manual save as fallback)
   const handleSaveClick = () => {
-    if (!files.includes(currentFile.filename)) {
-      setFiles((files) => [...files, currentFile.filename]);
+    try {
+      if (!files.includes(currentFile.filename)) {
+        setFiles((files) => [...files, currentFile.filename]);
+      }
+      saveFile(currentFile.filename, currentFile.content);
+      setSaveError(null);
+      console.log(`Manually saved: ${currentFile.filename}`);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to save file';
+      setSaveError(errorMessage);
+      console.error('Manual save error:', error);
     }
-    saveFile(currentFile.filename, currentFile.content);
   };
   // for handling the filename change in the top of the editor
   const handleFilenameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    // changing the currentFile state so that input field is upated
-    const newFilename = event.target.value;
-    setCurrentFile({...currentFile, filename: newFilename });
-    const updatedFiles = files.map((value) => {
-      if (value === currentFile.filename) {
-        return newFilename;
-      }
+    try {
+      // changing the currentFile state so that input field is upated
+      const newFilename = event.target.value;
+      setCurrentFile({...currentFile, filename: newFilename });
+      const updatedFiles = files.map((value) => {
+        if (value === currentFile.filename) {
+          return newFilename;
+        }
 
-      return value;
-    });
-    console.log(updatedFiles);
-    deleteFile(currentFile.filename);
-    saveFile(newFilename, currentFile.content);
-    setFiles([...updatedFiles]);
+        return value;
+      });
+      console.log(updatedFiles);
+      deleteFile(currentFile.filename);
+      saveFile(newFilename, currentFile.content);
+      setFiles([...updatedFiles]);
+      setSaveError(null);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to rename file';
+      setSaveError(errorMessage);
+      console.error('Filename change error:', error);
+    }
   };
 
   return (
@@ -75,6 +124,11 @@ export default function MarkdownEditor({
           <ButtonIcon src="save.svg" handleClick={handleSaveClick} />
         </div>
       </div>
+      {saveError && (
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-2" role="alert">
+          <span className="block sm:inline">{saveError}</span>
+        </div>
+      )}
       <div className="w-full overflow-auto">
         <SimpleMdeReact
           value={currentFile.content}
