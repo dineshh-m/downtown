@@ -9,6 +9,11 @@ export interface AutosaveOptions {
   onError?: (error: Error) => void;
 }
 
+export interface AutosaveInstance {
+  debouncedSave: (filename: string, content: string) => void;
+  cleanup: () => void;
+}
+
 /**
  * Creates a debounced autosave function
  * @param saveFunction - Function to call for saving
@@ -18,9 +23,9 @@ export interface AutosaveOptions {
 export function createAutosave(
   saveFunction: (filename: string, content: string) => void,
   options: AutosaveOptions = {}
-) {
+): AutosaveInstance {
   const { delay = 2000, onSave, onError } = options;
-  let timeoutId: number | undefined;
+  let timeoutId: ReturnType<typeof setTimeout> | undefined;
 
   const debouncedSave = (filename: string, content: string) => {
     // Clear existing timeout
@@ -29,7 +34,7 @@ export function createAutosave(
     }
 
     // Set new timeout
-    timeoutId = window.setTimeout(() => {
+    timeoutId = setTimeout(() => {
       try {
         saveFunction(filename, content);
         onSave?.(filename, content);

@@ -2,7 +2,7 @@ import SimpleMdeReact, { SimpleMDEReactProps } from "react-simplemde-editor";
 import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
 import ButtonIcon from "./ButtonIcon";
 import { deleteFile, saveFile } from "../utils/localStorage";
-import { createAutosave } from "../utils/autosave";
+import { createAutosave, AutosaveInstance } from "../utils/autosave";
 
 const MDEProps = {
   maxHeight: "500px",
@@ -28,7 +28,13 @@ export default function MarkdownEditor({
   >;
 }) {
   const [saveError, setSaveError] = useState<string | null>(null);
-  const autosaveRef = useRef<{ debouncedSave: (filename: string, content: string) => void; cleanup: () => void } | null>(null);
+  const autosaveRef = useRef<AutosaveInstance | null>(null);
+  const currentFileRef = useRef(currentFile);
+
+  // Update ref whenever currentFile changes
+  useEffect(() => {
+    currentFileRef.current = currentFile;
+  }, [currentFile]);
 
   // Initialize autosave on component mount
   useEffect(() => {
@@ -54,9 +60,9 @@ export default function MarkdownEditor({
     console.log(value);
     setCurrentFile({ ...currentFile, content: value });
     
-    // Use debounced autosave instead of immediate save
+    // Use debounced autosave with current filename from ref to avoid stale closure
     if (autosaveRef.current) {
-      autosaveRef.current.debouncedSave(currentFile.filename, value);
+      autosaveRef.current.debouncedSave(currentFileRef.current.filename, value);
     }
     
     if (!currentFile.isSaved) {
