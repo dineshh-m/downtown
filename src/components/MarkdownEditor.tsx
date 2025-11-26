@@ -1,7 +1,8 @@
 import SimpleMdeReact, { SimpleMDEReactProps } from "react-simplemde-editor";
-import { Dispatch, SetStateAction, } from "react";
+import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
 import ButtonIcon from "./ButtonIcon";
 import { deleteFile, saveFile } from "../utils/localStorage";
+import { createDebouncedAutosave, AutosaveError } from "../utils/autosave";
 
 const MDEProps = {
   maxHeight: "500px",
@@ -26,10 +27,41 @@ export default function MarkdownEditor({
     }>
   >;
 }) {
+  // State for autosave status and errors
+  const [autosaveStatus, setAutosaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  const [autosaveError, setAutosaveError] = useState<string | null>(null);
+  
+  // Create debounced autosave function with useRef to maintain the same instance
+  const debouncedAutosave = useRef(createDebouncedAutosave(2000));
+
+  // Effect to update autosave status back to idle after showing saved message
+  useEffect(() => {
+    if (autosaveStatus === 'saved') {
+      const timer = setTimeout(() => {
+        setAutosaveStatus('idle');
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [autosaveStatus]);
+
   const handleEditorChange = (value: string) => {
     console.log(value);
     setCurrentFile({ ...currentFile, content: value });
-    saveFile(currentFile.filename, value);
+    
+    // Update autosave status to saving
+    setAutosaveStatus('saving');
+    setAutosaveError(null);
+
+    // Trigger debounced autosave
+    debouncedAutosave.current(currentFile.filename, value, (error?: AutosaveError) => {
+      if (error) {
+        setAutosaveStatus('error');
+        setAutosaveError(error.message);
+      } else {
+        setAutosaveStatus('saved');
+        setAutosaveError(null);
+      }
+    });
     
     if (!currentFile.isSaved) {
       setFiles([...files, currentFile.filename]);
@@ -74,7 +106,37 @@ export default function MarkdownEditor({
         <div className="pr-3">
           <ButtonIcon src="save.svg" handleClick={handleSaveClick} />
         </div>
+        {/* Autosave status indicator */}
+        <div className="ml-2 text-sm">
+          {autosaveStatus === 'saving' && (
+            <span className="text-blue-500">Saving...</span>
+          )}
+          {autosaveStatus === 'saved' && (
+            <span className="text-green-600">✓ Autosaved</span>
+          )}
+          {autosaveStatus === 'error' && (
+            <span className="text-red-600">⚠ Autosave failed</span>
+          )}
+        </div>
       </div>
+      {/* Error warning banner */}
+      {autosaveError && (
+        <div className="bg-yellow-50 border-l-4 border-yellow-400 p-3 mb-2">
+          <div className="flex items-center">
+            <div className="flex-shrink-0">
+              <span className="text-yellow-600 text-xl">⚠</span>
+            </div>
+            <div className="ml-3">
+              <p className="text-sm text-yellow-700 font-medium">
+                {autosaveError}
+              </p>
+              <p className="text-xs text-yellow-600 mt-1">
+                Please use the manual save button or clear some browser storage.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
       <div className="w-full overflow-auto">
         <SimpleMdeReact
           value={currentFile.content}
